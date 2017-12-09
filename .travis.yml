@@ -1,12 +1,19 @@
 language: java
-sudo: required 
+
 jdk:
   - oraclejdk8
-install: ./gradlew assemble --stacktrace
+
 before_install:
- - chmod +x gradlew 
- - sudo apt-get install jq
- - wget -O ~/codacy-coverage-reporter-assembly-latest.jar $(curl https://api.github.com/repos/codacy/codacy-coverage-reporter/releases/latest | jq -r .assets[0].browser_download_url)
+  - gradle wrapper
+  - sudo apt-get install jq
+  - wget -O ~/codacy-coverage-reporter-assembly-latest.jar $(curl https://api.github.com/repos/codacy/codacy-coverage-reporter/releases/latest | jq -r .assets[0].browser_download_url)
+
+script:
+  - ./gradlew assemble
+  - ./gradlew check
+  - ./gradlew codeCoverageReport
+  - ./gradlew jacocoTestReport
+
 after_success:
   - bash <(curl -s https://codecov.io/bash)
-  - java -cp ~/codacy-coverage-reporter-assembly-latest.jar com.codacy.CodacyCoverageReporter -l Java -r build/reports/jacoco/test/jacocoTestReport.xml -t 8efefbdb799a48bf93f68bcb934159da
+  - java -cp ~/codacy-coverage-reporter-assembly-latest.jar com.codacy.CodacyCoverageReporter -l Java -r build/reports/jacoco/test/jacocoTestReport.xml
